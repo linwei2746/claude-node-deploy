@@ -63,6 +63,23 @@ else
     echo "已存在 .env 配置: $(grep NODE_HOSTNAME .env)"
 fi
 
-echo "=== [5/5] 启动 Claude 容器 ==="
+echo "=== [5/5] 启动 Claude 容器并配置宿主机 claude 快捷命令 ==="
 docker compose up -d --build
+
+# 创建全局 /usr/local/bin/claude 转发脚本（无需重登终端即可直接在宿主机敲 claude 使用，且支持带参数调用）
+cat << 'WRAPPER' > /usr/local/bin/claude
+#!/bin/bash
+if [ -t 0 ] && [ -t 1 ]; then
+    exec docker exec -it claude-worker claude "$@"
+else
+    exec docker exec -i claude-worker claude "$@"
+fi
+WRAPPER
+chmod +x /usr/local/bin/claude
+
+if ! grep -q "alias claude=" ~/.bashrc 2>/dev/null; then
+    echo "alias claude='docker exec -it claude-worker claude'" >> ~/.bashrc
+fi
+
 echo "🎉 部署完成！当前容器主机名为: $(docker exec claude-worker hostname)"
+echo "💡 现在直接在终端输入 claude 即可进入容器使用！"
