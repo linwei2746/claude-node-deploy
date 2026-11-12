@@ -1,0 +1,24 @@
+services:
+  claude-worker:
+    build: .
+    image: claude-worker:latest
+    container_name: claude-worker
+    restart: always
+    hostname: ${NODE_HOSTNAME}
+    user: "1000:1000"
+    stdin_open: true
+    tty: true
+    environment:
+      - TZ=${NODE_TZ:-America/Los_Angeles}
+    volumes:
+      - ./claude_config:/home/node/.claude:rw
+      - ./workspace:/home/node/workspace:rw
+    deploy:
+      resources:
+        limits:
+          cpus: '0.90'
+          memory: 750M
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

@@ -1,0 +1,4 @@
+.env
+claude_config/
+workspace/
+*.tar.gz
